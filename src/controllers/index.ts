@@ -21,6 +21,7 @@ export const livefc = async (
     try {
         res.json(await getLiveFC());
     } catch (error) {
+        console.log(error);
         res.json([]);
     }
 };
@@ -36,6 +37,7 @@ export const livefcstreams = async (
     try {
         res.json(await getLiveFCSteams(req.params.id));
     } catch (error) {
+        console.log(error);
         res.json([]);
     }
 };

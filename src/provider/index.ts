@@ -11,6 +11,8 @@ export async function getLiveFC(): Promise<LiveFCs> {
         height: 720,
     });
 
+    console.log({ PROVIDER_URL: process.env.PROVIDER_URL });
+
     await page.goto(process.env.PROVIDER_URL);
 
     const mainBodies = await page.$$("div#main-body-bg.match--row.m-visible");
@@ -62,6 +64,8 @@ export async function getLiveFCSteams(id: string): Promise<LiveFCStreams> {
         width: 1280,
         height: 720,
     });
+
+    console.log({ PROVIDER_URL: process.env.PROVIDER_URL });
 
     await page.goto(process.env.PROVIDER_URL);
 
