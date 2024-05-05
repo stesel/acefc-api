@@ -1,4 +1,6 @@
 import { Request, Response } from "express";
+import { getLiveFC, getLiveFCSteams } from "../provider";
+import { LiveFCStreams, LiveFCs } from "../types";
 
 /**
  * GET /
@@ -12,15 +14,28 @@ export const status = async (req: Request, res: Response): Promise<void> => {
  * GET /
  * Live FC.
  */
-export const livefc = async (req: Request, res: Response): Promise<void> => {
-    res.json({
-        name: "Manchester United vs. Barcelona",
-        streams: [
-            {
-                url: "http://example.com/livefc",
-                quality: "7000kb",
-                language: "en",
-            },
-        ],
-    });
+export const livefc = async (
+    req: Request,
+    res: Response<LiveFCs>,
+): Promise<void> => {
+    try {
+        res.json(await getLiveFC());
+    } catch (error) {
+        res.json([]);
+    }
+};
+
+/**
+ * GET /
+ * Live FC Streams.
+ */
+export const livefcstreams = async (
+    req: Request<{ id: string }>,
+    res: Response<LiveFCStreams>,
+): Promise<void> => {
+    try {
+        res.json(await getLiveFCSteams(req.params.id));
+    } catch (error) {
+        res.json([]);
+    }
 };
