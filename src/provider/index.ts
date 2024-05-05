@@ -1,10 +1,22 @@
-import { launch } from "puppeteer";
+import { executablePath, launch } from "puppeteer";
 import { LiveFCs, LiveFCStreams } from "../types";
 
 import { transliterate } from "transliteration";
 
 export async function getLiveFC(): Promise<LiveFCs> {
-    const browser = await launch({ headless: true });
+    const browser = await launch({
+        headless: true,
+        args: [
+            "--disable-setuid-sandbox",
+            "--no-sandbox",
+            "--single-process",
+            "--no-zygote",
+        ],
+        executablePath:
+            process.env.NODE_ENV === "production"
+                ? process.env.PUPPETEER_EXECUTABLE_PATH
+                : executablePath(),
+    });
     const page = await browser.newPage();
     await page.setViewport({
         width: 1280,
