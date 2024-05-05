@@ -1,4 +1,4 @@
-import { executablePath, launch } from "puppeteer";
+import { launch, executablePath } from "puppeteer";
 import { LiveFCs, LiveFCStreams } from "../types";
 
 import { transliterate } from "transliteration";
@@ -6,24 +6,25 @@ import { transliterate } from "transliteration";
 export async function getLiveFC(): Promise<LiveFCs> {
     const browser = await launch({
         headless: true,
-        args: [
-            "--disable-setuid-sandbox",
-            "--no-sandbox",
-            "--single-process",
-            "--no-zygote",
-        ],
+        args:
+            process.env.NODE_ENV === "production"
+                ? [
+                      "--disable-setuid-sandbox",
+                      "--no-sandbox",
+                      "--single-process",
+                      "--no-zygote",
+                  ]
+                : undefined,
         executablePath:
             process.env.NODE_ENV === "production"
                 ? process.env.PUPPETEER_EXECUTABLE_PATH
-                : executablePath(),
+                : undefined,
     });
     const page = await browser.newPage();
     await page.setViewport({
         width: 1280,
         height: 720,
     });
-
-    console.log({ PROVIDER_URL: process.env.PROVIDER_URL });
 
     await page.goto(process.env.PROVIDER_URL);
 
@@ -70,14 +71,27 @@ export async function getLiveFC(): Promise<LiveFCs> {
 }
 
 export async function getLiveFCSteams(id: string): Promise<LiveFCStreams> {
-    const browser = await launch({ headless: true });
+    const browser = await launch({
+        headless: true,
+        args:
+            process.env.NODE_ENV === "production"
+                ? [
+                      "--disable-setuid-sandbox",
+                      "--no-sandbox",
+                      "--single-process",
+                      "--no-zygote",
+                  ]
+                : undefined,
+        executablePath:
+            process.env.NODE_ENV === "production"
+                ? process.env.PUPPETEER_EXECUTABLE_PATH
+                : undefined,
+    });
     const page = await browser.newPage();
     await page.setViewport({
         width: 1280,
         height: 720,
     });
-
-    console.log({ PROVIDER_URL: process.env.PROVIDER_URL });
 
     await page.goto(process.env.PROVIDER_URL);
 

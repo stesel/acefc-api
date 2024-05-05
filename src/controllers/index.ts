@@ -7,6 +7,7 @@ import { LiveFCStreams, LiveFCs } from "../types";
  * Status page.
  */
 export const status = async (req: Request, res: Response): Promise<void> => {
+    console.log(process.env.NODE_ENV);
     res.render("status", { status: "running" });
 };
 
