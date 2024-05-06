@@ -1,7 +1,12 @@
-import { Browser, ElementHandle, Page, launch } from "puppeteer";
+import puppeteer from "puppeteer-extra";
+import StealthPlugin from "puppeteer-extra-plugin-stealth";
+
 import { LiveFCs, LiveFCStreams } from "../types";
 
 import { transliterate } from "transliteration";
+import { Browser, ElementHandle, Page } from "puppeteer";
+
+puppeteer.use(StealthPlugin());
 
 async function logHtmlContent(page: Page): Promise<void> {
     console.log(await page.content());
@@ -14,7 +19,7 @@ async function getProviderPage(): Promise<{ browser: Browser; page: Page }> {
         PROVIDER_URL: process.env.PROVIDER_URL,
     });
 
-    const browser = await launch({
+    const browser = await puppeteer.launch({
         headless: true,
         args:
             process.env.NODE_ENV === "production"
@@ -24,7 +29,7 @@ async function getProviderPage(): Promise<{ browser: Browser; page: Page }> {
                       "--single-process",
                       "--no-zygote",
                   ]
-                : undefined,
+                : [],
         executablePath:
             process.env.NODE_ENV === "production"
                 ? process.env.PUPPETEER_EXECUTABLE_PATH

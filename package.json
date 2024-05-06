@@ -31,6 +31,8 @@
         "morgan": "^1.10.0",
         "pug": "^3.0.2",
         "puppeteer": "^22.7.1",
+        "puppeteer-extra": "^3.3.6",
+        "puppeteer-extra-plugin-stealth": "^2.11.2",
         "transliteration": "^2.3.5"
     },
     "devDependencies": {
