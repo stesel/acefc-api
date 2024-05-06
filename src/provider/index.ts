@@ -1,9 +1,19 @@
-import { launch, executablePath } from "puppeteer";
+import { Browser, ElementHandle, Page, launch } from "puppeteer";
 import { LiveFCs, LiveFCStreams } from "../types";
 
 import { transliterate } from "transliteration";
 
-export async function getLiveFC(): Promise<LiveFCs> {
+async function logHtmlContent(page: Page): Promise<void> {
+    console.log(await page.content());
+}
+
+async function getProviderPage(): Promise<{ browser: Browser; page: Page }> {
+    console.log({
+        NODE_ENV: process.env.NODE_ENV,
+        PUPPETEER_EXECUTABLE_PATH: process.env.PUPPETEER_EXECUTABLE_PATH,
+        PROVIDER_URL: process.env.PROVIDER_URL,
+    });
+
     const browser = await launch({
         headless: true,
         args:
@@ -20,7 +30,9 @@ export async function getLiveFC(): Promise<LiveFCs> {
                 ? process.env.PUPPETEER_EXECUTABLE_PATH
                 : undefined,
     });
+
     const page = await browser.newPage();
+
     await page.setViewport({
         width: 1280,
         height: 720,
@@ -28,11 +40,43 @@ export async function getLiveFC(): Promise<LiveFCs> {
 
     await page.goto(process.env.PROVIDER_URL);
 
+    return { browser, page };
+}
+
+async function getMainBodyLinks(
+    page: Page,
+): Promise<ElementHandle<HTMLAnchorElement>[]> {
     const mainBodies = await page.$$("div#main-body-bg.match--row.m-visible");
 
     const mainBody = mainBodies[0];
 
+    if (!mainBody) {
+        console.warn("no main body");
+
+        await logHtmlContent(page);
+
+        return [];
+    }
+
     const links = await mainBody.$$("a");
+
+    if (!links) {
+        console.warn("no main body links");
+
+        await logHtmlContent(page);
+
+        return [];
+    }
+
+    return await mainBody.$$("a");
+}
+
+export async function getLiveFC(): Promise<LiveFCs> {
+    console.log(`getLiveFC`);
+
+    const { browser, page } = await getProviderPage();
+
+    const links = await getMainBodyLinks(page);
 
     const fcs: LiveFCs = [];
 
@@ -71,38 +115,18 @@ export async function getLiveFC(): Promise<LiveFCs> {
 }
 
 export async function getLiveFCSteams(id: string): Promise<LiveFCStreams> {
-    const browser = await launch({
-        headless: true,
-        args:
-            process.env.NODE_ENV === "production"
-                ? [
-                      "--disable-setuid-sandbox",
-                      "--no-sandbox",
-                      "--single-process",
-                      "--no-zygote",
-                  ]
-                : undefined,
-        executablePath:
-            process.env.NODE_ENV === "production"
-                ? process.env.PUPPETEER_EXECUTABLE_PATH
-                : undefined,
-    });
-    const page = await browser.newPage();
-    await page.setViewport({
-        width: 1280,
-        height: 720,
-    });
+    console.log(`getLiveFCSteams:: ${id}`);
 
-    await page.goto(process.env.PROVIDER_URL);
+    const { browser, page } = await getProviderPage();
 
-    const mainBodies = await page.$$("div#main-body-bg.match--row.m-visible");
-
-    const mainBody = mainBodies[0];
-
-    const links = await mainBody.$$("a");
+    const links = await getMainBodyLinks(page);
 
     const index = Number(id);
     if (isNaN(index) || index >= links.length) {
+        console.warn("no stream id");
+
+        await logHtmlContent(page);
+
         return [];
     }
 
@@ -115,6 +139,10 @@ export async function getLiveFCSteams(id: string): Promise<LiveFCStreams> {
     const streamBlock = await page.$(".list-link-stream .stream-3row");
 
     if (!streamBlock) {
+        console.warn("no stream block");
+
+        await logHtmlContent(page);
+
         return [];
     }
 
