@@ -31,6 +31,12 @@ function onListening() {
     const addr = server.address();
     const bind =
         typeof addr === "string" ? `pipe ${addr}` : `port ${addr?.port}`;
+    console.log(`NODE_ENV: ${process.env.NODE_ENV}`);
+    console.log(
+        `PUPPETEER_EXECUTABLE_PATH: ${process.env.PUPPETEER_EXECUTABLE_PATH}`,
+    );
+    console.log(`PROVIDER_URL: ${process.env.PROVIDER_URL}`);
+
     console.log(`Listening on ${bind}`);
 }
 

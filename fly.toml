@@ -4,7 +4,7 @@
 #
 
 app = 'acefc-api'
-primary_region = 'waw'
+primary_region = 'hkg'
 
 [build]
 

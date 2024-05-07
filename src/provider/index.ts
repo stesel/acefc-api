@@ -7,7 +7,7 @@ import { transliterate } from "transliteration";
 import { Browser, ElementHandle, Page } from "puppeteer";
 
 const cache: LiveFCCache = {
-    liveFC: { value: [], timestamp: Date.now() },
+    liveFC: { value: [], timestamp: 0 },
     liveFCStreams: new Map(),
 };
 
@@ -20,12 +20,6 @@ async function logHtmlContent(page: Page): Promise<void> {
 }
 
 async function getProviderPage(): Promise<{ browser: Browser; page: Page }> {
-    console.log({
-        NODE_ENV: process.env.NODE_ENV,
-        PUPPETEER_EXECUTABLE_PATH: process.env.PUPPETEER_EXECUTABLE_PATH,
-        PROVIDER_URL: process.env.PROVIDER_URL,
-    });
-
     const browser = await puppeteer.use(StealthPlugin()).launch({
         headless: true,
         args:
@@ -57,14 +51,14 @@ async function getProviderPage(): Promise<{ browser: Browser; page: Page }> {
 
     await page.goto(process.env.PROVIDER_URL);
 
-    await page.waitForNetworkIdle();
-
     return { browser, page };
 }
 
 async function getMainBodyLinks(
     page: Page,
 ): Promise<ElementHandle<HTMLAnchorElement>[]> {
+    await page.waitForSelector(".head_bestmacth");
+
     const mainBodies = await page.$$("div#main-body-bg.match--row.m-visible");
 
     const mainBody = mainBodies[0];
