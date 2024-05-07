@@ -13,3 +13,12 @@ export interface LiveFCStream {
 }
 
 export type LiveFCStreams = Array<LiveFCStream>;
+
+export interface CacheValue<T> {
+    value: T;
+    timestamp: number;
+}
+export interface LiveFCCache {
+    liveFC: CacheValue<LiveFCs>;
+    liveFCStreams: Map<number, CacheValue<LiveFCStreams>>;
+}

@@ -1,10 +1,19 @@
 import puppeteer from "puppeteer-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
 
-import { LiveFCs, LiveFCStreams } from "../types";
+import { CacheValue, LiveFCCache, LiveFCs, LiveFCStreams } from "../types";
 
 import { transliterate } from "transliteration";
 import { Browser, ElementHandle, Page } from "puppeteer";
+
+const cache: LiveFCCache = {
+    liveFC: { value: [], timestamp: Date.now() },
+    liveFCStreams: new Map(),
+};
+
+function isValidCache<T>(cacheValue: CacheValue<T>): boolean {
+    return Date.now() - cacheValue.timestamp < 60000;
+}
 
 async function logHtmlContent(page: Page): Promise<void> {
     console.log(await page.content());
@@ -41,7 +50,14 @@ async function getProviderPage(): Promise<{ browser: Browser; page: Page }> {
         height: 720,
     });
 
+    await page.setUserAgent(
+        // eslint-disable-next-line max-len
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36",
+    );
+
     await page.goto(process.env.PROVIDER_URL);
+
+    await page.waitForNetworkIdle();
 
     return { browser, page };
 }
@@ -75,7 +91,12 @@ async function getMainBodyLinks(
 }
 
 export async function getLiveFC(): Promise<LiveFCs> {
-    console.log(`getLiveFC`);
+    console.log("getLiveFC");
+
+    if (isValidCache(cache.liveFC)) {
+        console.log("return liveFC from cache");
+        return cache.liveFC.value;
+    }
 
     const { browser, page } = await getProviderPage();
 
@@ -114,18 +135,36 @@ export async function getLiveFC(): Promise<LiveFCs> {
 
     await browser.close();
 
+    cache.liveFC = {
+        value: fcs,
+        timestamp: Date.now(),
+    };
+
     return fcs;
 }
 
 export async function getLiveFCSteams(id: string): Promise<LiveFCStreams> {
     console.log(`getLiveFCSteams:: ${id}`);
 
+    const index = Number(id);
+
+    if (isNaN(index)) {
+        console.warn(`wrong live FC id: ${id}`);
+
+        return [];
+    }
+
+    const streamsCache = cache.liveFCStreams.get(index);
+
+    if (streamsCache && isValidCache(streamsCache)) {
+        return streamsCache.value;
+    }
+
     const { browser, page } = await getProviderPage();
 
     const links = await getMainBodyLinks(page);
 
-    const index = Number(id);
-    if (isNaN(index) || index >= links.length) {
+    if (index >= links.length) {
         console.warn("no stream id");
 
         await logHtmlContent(page);
@@ -171,6 +210,8 @@ export async function getLiveFCSteams(id: string): Promise<LiveFCStreams> {
     }
 
     await browser.close();
+
+    cache.liveFCStreams.set(index, { value: streams, timestamp: Date.now() });
 
     return streams;
 }
