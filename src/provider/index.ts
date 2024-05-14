@@ -14,10 +14,24 @@ const cache: LiveFCCache = {
 };
 
 function isValidLiveFCCache(cacheValue: CacheValue<LiveFCs>): boolean {
-    return new Date().getUTCDate() !== new Date(cacheValue.timestamp).getUTCDate() && cacheValue.value.length > 0;
+    console.log(
+        "validLiveFCCache:",
+        new Date().toUTCString(),
+        new Date(cacheValue.timestamp).toUTCString(),
+    );
+    return (
+        new Date().getUTCDate() ===
+            new Date(cacheValue.timestamp).getUTCDate() &&
+        cacheValue.value.length > 0
+    );
 }
 
-function isValidCache<T>(cacheValue: CacheValue<T>): boolean {
+function isValidLiveFCStreamsCache<T>(cacheValue: CacheValue<T>): boolean {
+    console.log(
+        "validLiveFCStreamsCache:",
+        new Date().toUTCString(),
+        new Date(cacheValue.timestamp).toUTCString(),
+    );
     return Date.now() - cacheValue.timestamp < 60000;
 }
 
@@ -132,11 +146,13 @@ export async function getLiveFC(): Promise<LiveFCs> {
             element => element.textContent,
         );
 
-        fcs.push({ id, title: transliterate(title), time });
-        
-        const linkValue = await link.evaluate(link => link.getAttribute("href"));
+        const linkValue = await link.evaluate(link =>
+            link.getAttribute("href"),
+        );
 
-        linkValues.set(id, linkValue);
+        linkValues.set(fcs.length, linkValue);
+
+        fcs.push({ id, title: transliterate(title), time });
     }
 
     await browser.close();
@@ -163,7 +179,8 @@ export async function getLiveFCSteams(id: string): Promise<LiveFCStreams> {
 
     const streamsCache = cache.liveFCStreams.get(index);
 
-    if (streamsCache && isValidCache(streamsCache)) {
+    if (streamsCache && isValidLiveFCStreamsCache(streamsCache)) {
+        console.log(`return liveFCStream/${index} from cache`);
         return streamsCache.value;
     }
 
@@ -172,23 +189,28 @@ export async function getLiveFCSteams(id: string): Promise<LiveFCStreams> {
     const hrefValue = cache.liveFC.links.get(index);
 
     if (hrefValue) {
+        console.log("Get links from cache");
         await page.goto(hrefValue);
     } else {
+        console.log("Get links from page");
         await page.goto(process.env.PROVIDER_URL);
 
         const links = await getMainBodyLinks(page);
-    
+
         if (index >= links.length) {
             console.warn("no stream id");
-    
+
             await logHtmlContent(page);
-    
+
             return [];
         }
 
         const link = links[index];
 
-        const href = await page.evaluate(link => link.getAttribute("href"), link);
+        const href = await page.evaluate(
+            link => link.getAttribute("href"),
+            link,
+        );
 
         await page.goto(href);
     }
