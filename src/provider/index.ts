@@ -1,17 +1,18 @@
 import puppeteer from "puppeteer-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
 
-import { CacheValue, LiveFCCache, LiveFCs, LiveFCStreams } from "../types";
+import { CacheValue, LiveFCs, LiveFCStreams } from "../types";
 
 import { transliterate } from "transliteration";
 import { Browser, ElementHandle, Page } from "puppeteer";
+import {
+    getDbLiveFC,
+    getDbLiveFCStreams,
+    setDbLiveFC,
+    setDbLiveFCStreams,
+} from "../db";
 
 const ONE_HOUR = 3600000;
-
-const cache: LiveFCCache = {
-    liveFC: { value: [], links: new Map(), timestamp: 0 },
-    liveFCStreams: new Map(),
-};
 
 function isValidLiveFCCache(cacheValue: CacheValue<LiveFCs>): boolean {
     console.log(
@@ -20,9 +21,10 @@ function isValidLiveFCCache(cacheValue: CacheValue<LiveFCs>): boolean {
         new Date(cacheValue.timestamp).toUTCString(),
     );
     return (
-        new Date().getUTCDate() ===
-            new Date(cacheValue.timestamp).getUTCDate() &&
-        cacheValue.value.length > 0
+        Math.abs(
+            new Date().getUTCHours() -
+                new Date(cacheValue.timestamp).getUTCHours(),
+        ) < 6 && cacheValue.value.length > 0
     );
 }
 
@@ -105,9 +107,11 @@ async function getMainBodyLinks(
 export async function getLiveFC(): Promise<LiveFCs> {
     console.log("getLiveFC");
 
-    if (isValidLiveFCCache(cache.liveFC)) {
+    const cache = await getDbLiveFC();
+
+    if (cache && isValidLiveFCCache(cache)) {
         console.log("return liveFC from cache");
-        return cache.liveFC.value;
+        return cache.value;
     }
 
     const { browser, page } = await getProviderPage();
@@ -118,7 +122,7 @@ export async function getLiveFC(): Promise<LiveFCs> {
 
     const fcs: LiveFCs = [];
 
-    const linkValues = new Map();
+    const linkValues: Record<number, string> = {};
 
     for (const link of links) {
         const id = `${fcs.length}`;
@@ -150,18 +154,18 @@ export async function getLiveFC(): Promise<LiveFCs> {
             link.getAttribute("href"),
         );
 
-        linkValues.set(fcs.length, linkValue);
+        linkValues[fcs.length] = linkValue;
 
         fcs.push({ id, title: transliterate(title), time });
     }
 
     await browser.close();
 
-    cache.liveFC = {
+    await setDbLiveFC({
         value: fcs,
         links: linkValues,
         timestamp: Date.now(),
-    };
+    });
 
     return fcs;
 }
@@ -177,7 +181,7 @@ export async function getLiveFCSteams(id: string): Promise<LiveFCStreams> {
         return [];
     }
 
-    const streamsCache = cache.liveFCStreams.get(index);
+    const streamsCache = await getDbLiveFCStreams(index);
 
     if (streamsCache && isValidLiveFCStreamsCache(streamsCache)) {
         console.log(`return liveFCStream/${index} from cache`);
@@ -186,7 +190,8 @@ export async function getLiveFCSteams(id: string): Promise<LiveFCStreams> {
 
     const { browser, page } = await getProviderPage();
 
-    const hrefValue = cache.liveFC.links.get(index);
+    const cachedLinks = (await getDbLiveFC()).links;
+    const hrefValue = cachedLinks[index];
 
     if (hrefValue) {
         console.log("Get links from cache");
@@ -248,13 +253,14 @@ export async function getLiveFCSteams(id: string): Promise<LiveFCStreams> {
 
     await browser.close();
 
-    cache.liveFCStreams.set(index, { value: streams, timestamp: Date.now() });
+    await setDbLiveFCStreams(index, { value: streams, timestamp: Date.now() });
 
     return streams;
 }
 
-function checkLiveFCCache() {
-    if (!isValidLiveFCCache(cache.liveFC)) {
+async function checkLiveFCCache() {
+    const cache = await getDbLiveFC();
+    if (!cache || !isValidLiveFCCache(cache)) {
         getLiveFC().then(() => console.log("LiveFC cache updated"));
     }
     setTimeout(checkLiveFCCache, ONE_HOUR);

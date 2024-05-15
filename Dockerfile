@@ -24,4 +24,6 @@ COPY --from=builder /usr/src/app/dist ./dist
 COPY --from=builder /usr/src/app/views ./views
 COPY --from=builder /usr/src/app/public ./public
 
+VOLUME ["/usr/src/app/data"]
+
 CMD ["npm", "start"]

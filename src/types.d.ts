@@ -19,6 +19,6 @@ export interface CacheValue<T> {
     timestamp: number;
 }
 export interface LiveFCCache {
-    liveFC: CacheValue<LiveFCs> & {links: Map<number, string>};
-    liveFCStreams: Map<number, CacheValue<LiveFCStreams>>;
+    liveFC: CacheValue<LiveFCs> & { links: Record<number, string> };
+    liveFCStreams: Record<number, CacheValue<LiveFCStreams>>;
 }

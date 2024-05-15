@@ -29,6 +29,7 @@
         "express": "^4.19.2",
         "http-errors": "^2.0.0",
         "morgan": "^1.10.0",
+        "node-json-db": "^2.3.0",
         "pug": "^3.0.2",
         "puppeteer": "^22.7.1",
         "puppeteer-extra": "^3.3.6",
