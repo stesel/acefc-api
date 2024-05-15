@@ -190,8 +190,8 @@ export async function getLiveFCSteams(id: string): Promise<LiveFCStreams> {
 
     const { browser, page } = await getProviderPage();
 
-    const cachedLinks = (await getDbLiveFC()).links;
-    const hrefValue = cachedLinks[index];
+    const cache = await getDbLiveFC();
+    const hrefValue = !!cache ? cache.links[index] : undefined;
 
     if (hrefValue) {
         console.log("Get links from cache");
