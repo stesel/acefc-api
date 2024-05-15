@@ -22,5 +22,5 @@ primary_region = 'hkg'
   cpus = 1
 
 [mounts]
-  source="acefc-data"
-  destination="/acefc-data"
+  source="acefc_data"
+  destination="/acefc_data"
