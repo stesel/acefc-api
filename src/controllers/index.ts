@@ -1,14 +1,22 @@
 import { Request, Response } from "express";
 import { getLiveFC, getLiveFCSteams } from "../provider";
 import { LiveFCStreams, LiveFCs } from "../types";
+import { getUptime } from "../utils/uptime";
 
 /**
  * GET /
  * Status page.
  */
 export const status = async (req: Request, res: Response): Promise<void> => {
-    console.log(process.env.NODE_ENV);
-    res.render("status", { status: "running" });
+    const { d, h, m, s, ms } = getUptime();
+
+    const status = `running: ${d}d ${h}h ${m}m ${s}s ${ms}ms`;
+
+    console.log(status);
+
+    res.render("status", {
+        status,
+    });
 };
 
 /**
