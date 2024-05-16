@@ -12,8 +12,6 @@ import {
     setDbLiveFCStreams,
 } from "../db";
 
-const ONE_HOUR = 3600000;
-
 function isValidLiveFCCache(cacheValue: CacheValue<LiveFCs>): boolean {
     console.log(
         "validLiveFCCache:",
@@ -24,7 +22,7 @@ function isValidLiveFCCache(cacheValue: CacheValue<LiveFCs>): boolean {
         Math.abs(
             new Date().getUTCHours() -
                 new Date(cacheValue.timestamp).getUTCHours(),
-        ) < 6 && cacheValue.value.length > 0
+        ) < 1 && cacheValue.value.length > 0
     );
 }
 
@@ -257,13 +255,3 @@ export async function getLiveFCSteams(id: string): Promise<LiveFCStreams> {
 
     return streams;
 }
-
-async function checkLiveFCCache() {
-    const cache = await getDbLiveFC();
-    if (!cache || !isValidLiveFCCache(cache)) {
-        getLiveFC().then(() => console.log("LiveFC cache updated"));
-    }
-    setTimeout(checkLiveFCCache, ONE_HOUR);
-}
-
-checkLiveFCCache();
