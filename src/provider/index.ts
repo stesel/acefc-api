@@ -12,6 +12,9 @@ import {
     setDbLiveFCStreams,
 } from "../db";
 
+const ONE_MINUTE = 60 * 1000;
+const ONE_HOUR = 60 * ONE_MINUTE;
+
 function isValidLiveFCCache(cacheValue: CacheValue<LiveFCs>): boolean {
     console.log(
         "validLiveFCCache:",
@@ -19,8 +22,7 @@ function isValidLiveFCCache(cacheValue: CacheValue<LiveFCs>): boolean {
         new Date(cacheValue.timestamp).toUTCString(),
     );
     return (
-        new Date().getUTCHours() ===
-            new Date(cacheValue.timestamp).getUTCHours() &&
+        Date.now() - cacheValue.timestamp < ONE_HOUR &&
         cacheValue.value.length > 0
     );
 }
@@ -31,7 +33,7 @@ function isValidLiveFCStreamsCache<T>(cacheValue: CacheValue<T>): boolean {
         new Date().toUTCString(),
         new Date(cacheValue.timestamp).toUTCString(),
     );
-    return Date.now() - cacheValue.timestamp < 60000;
+    return Date.now() - cacheValue.timestamp < ONE_MINUTE;
 }
 
 async function logHtmlContent(page: Page): Promise<void> {
@@ -74,6 +76,15 @@ async function getProviderPage(): Promise<{ browser: Browser; page: Page }> {
 async function getMainBodyLinks(
     page: Page,
 ): Promise<ElementHandle<HTMLAnchorElement>[]> {
+    const challengeBodyText = await page.$("#challenge-body-text");
+
+    if (challengeBodyText) {
+        console.log("Wait for challenge");
+        await page.waitForSelector("div#main-body-bg.match--row.m-visible", {
+            timeout: 60000,
+        });
+    }
+
     const mainBodies = await page.$$("div#main-body-bg.match--row.m-visible");
 
     const mainBody = mainBodies[0];
