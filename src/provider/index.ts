@@ -74,8 +74,6 @@ async function getProviderPage(): Promise<{ browser: Browser; page: Page }> {
 async function getMainBodyLinks(
     page: Page,
 ): Promise<ElementHandle<HTMLAnchorElement>[]> {
-    await page.waitForSelector(".head_bestmacth");
-
     const mainBodies = await page.$$("div#main-body-bg.match--row.m-visible");
 
     const mainBody = mainBodies[0];
