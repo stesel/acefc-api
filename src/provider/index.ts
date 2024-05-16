@@ -19,10 +19,9 @@ function isValidLiveFCCache(cacheValue: CacheValue<LiveFCs>): boolean {
         new Date(cacheValue.timestamp).toUTCString(),
     );
     return (
-        Math.abs(
-            new Date().getUTCHours() -
-                new Date(cacheValue.timestamp).getUTCHours(),
-        ) < 1 && cacheValue.value.length > 0
+        new Date().getUTCHours() ===
+            new Date(cacheValue.timestamp).getUTCHours() &&
+        cacheValue.value.length > 0
     );
 }
 
