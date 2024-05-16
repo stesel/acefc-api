@@ -1,7 +1,9 @@
 import { JsonDB, Config } from "node-json-db";
 import { CacheValue, LiveFCCache, LiveFCStreams } from "../types";
 
-const db = new JsonDB(new Config("acefc-db", true, true, "/"));
+const db = new JsonDB(
+    new Config(process.env.DB_FILE_PATH || "db", true, true, "/"),
+);
 
 export async function getDbLiveFC(): Promise<
     LiveFCCache["liveFC"] | undefined
