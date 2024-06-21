@@ -1,10 +1,7 @@
-import puppeteer from "puppeteer-extra";
-import StealthPlugin from "puppeteer-extra-plugin-stealth";
-
 import { CacheValue, LiveFCs, LiveFCStreams } from "../types";
 
 import { transliterate } from "transliteration";
-import { Browser, ElementHandle, Page } from "puppeteer";
+import { Browser, ElementHandle, launch, Page, Puppeteer } from "puppeteer";
 import {
     getDbLiveFC,
     getDbLiveFCStreams,
@@ -41,7 +38,7 @@ async function logHtmlContent(page: Page): Promise<void> {
 }
 
 async function getProviderPage(): Promise<{ browser: Browser; page: Page }> {
-    const browser = await puppeteer.use(StealthPlugin()).launch({
+    const browser = await launch({
         headless: true,
         args:
             process.env.NODE_ENV === "production"
