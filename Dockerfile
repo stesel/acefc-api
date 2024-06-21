@@ -10,7 +10,7 @@ COPY . .
 
 RUN npm run build
 
-FROM ghcr.io/puppeteer/puppeteer:22.7.1
+FROM ghcr.io/puppeteer/puppeteer:latest
 
 USER node
 
