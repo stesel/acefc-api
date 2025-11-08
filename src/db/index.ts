@@ -11,7 +11,7 @@ export async function getDbLiveFC(): Promise<
     try {
         const value = await db.getObject<LiveFCCache["liveFC"]>("/liveFC");
         return value;
-    } catch (error) {
+    } catch {
         return undefined;
     }
 }
@@ -28,7 +28,7 @@ export async function getDbLiveFCStreams(
             `/liveFCStreams/${index}`,
         );
         return value;
-    } catch (error) {
+    } catch {
         return undefined;
     }
 }

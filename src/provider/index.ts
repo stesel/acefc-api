@@ -1,7 +1,7 @@
 import { CacheValue, LiveFCs, LiveFCStreams } from "../types";
 
 import { transliterate } from "transliteration";
-import { Browser, ElementHandle, launch, Page, Puppeteer } from "puppeteer";
+import { Browser, ElementHandle, launch, Page } from "puppeteer";
 import {
     getDbLiveFC,
     getDbLiveFCStreams,
@@ -57,10 +57,7 @@ async function getProviderPage(): Promise<{ browser: Browser; page: Page }> {
 
     const page = await browser.newPage();
 
-    await page.setViewport({
-        width: 1280,
-        height: 720,
-    });
+    await page.setViewport({ width: 1280, height: 720 });
 
     await page.setUserAgent(
         // eslint-disable-next-line max-len
@@ -164,11 +161,7 @@ export async function getLiveFC(): Promise<LiveFCs> {
 
     await browser.close();
 
-    await setDbLiveFC({
-        value: fcs,
-        links: linkValues,
-        timestamp: Date.now(),
-    });
+    await setDbLiveFC({ value: fcs, links: linkValues, timestamp: Date.now() });
 
     return fcs;
 }
@@ -247,11 +240,7 @@ export async function getLiveFCSteams(id: string): Promise<LiveFCStreams> {
                 .match(/(\w+).\w+$/) || [])[1],
         }));
 
-        streams.push({
-            id,
-            quality,
-            language,
-        });
+        streams.push({ id, quality, language });
     }
 
     await browser.close();
