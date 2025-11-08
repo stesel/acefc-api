@@ -59,10 +59,10 @@ async function getProviderPage(): Promise<{ browser: Browser; page: Page }> {
 
     await page.setViewport({ width: 1280, height: 720 });
 
-    await page.setUserAgent(
-        // eslint-disable-next-line max-len
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36",
-    );
+    await page.setUserAgent({
+        userAgent:
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36",
+    });
 
     return { browser, page };
 }
@@ -101,7 +101,7 @@ async function getMainBodyLinks(
         return [];
     }
 
-    return await mainBody.$$("a");
+    return links;
 }
 
 export async function getLiveFC(): Promise<LiveFCs> {
